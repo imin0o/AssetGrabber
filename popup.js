@@ -149,6 +149,25 @@ function scanPage() {
           if (previewList && count <= 100) { // リスト表示数を100件に増加
             var item = document.createElement("div");
             item.className = "preview-item";
+            item.dataset.url = itemData.url;
+
+            // チェックボックス追加
+            var cbContainer = document.createElement("div");
+            cbContainer.className = "checkbox-container";
+            var cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.checked = true;
+            cb.className = "asset-checkbox";
+            cb.addEventListener("change", function (e) {
+              var parent = e.target.closest(".preview-item");
+              if (e.target.checked) {
+                parent.classList.remove("unselected");
+              } else {
+                parent.classList.add("unselected");
+              }
+            });
+            cbContainer.appendChild(cb);
+            item.appendChild(cbContainer);
 
             var isVideo = [".mp4", ".webm", ".mov", ".m4v", ".mkv"].indexOf(itemData.ext) !== -1;
             var media;
@@ -171,7 +190,7 @@ function scanPage() {
             previewList.appendChild(item);
           }
         }
-        setStatus("<b>" + count + "</b> 件を検出しました (重複除外済)", true);
+        setStatus("<b>" + count + "</b> 件を検出しました (個別に選択可能)", true);
         downloadBtn.disabled = false;
       });
     }).catch(function (err) {
@@ -183,13 +202,35 @@ function scanPage() {
 }
 
 function startDownload() {
+  var selectedUrls = [];
+  var items = document.querySelectorAll(".preview-item");
+  for (var i = 0; i < items.length; i++) {
+    var cb = items[i].querySelector(".asset-checkbox");
+    if (cb && cb.checked) {
+      selectedUrls.push(items[i].dataset.url);
+    }
+  }
+
+  if (selectedUrls.length === 0) {
+    setStatus("ダウンロードする項目を選択してください", false);
+    return;
+  }
+
   downloadBtn.disabled = true;
-  setStatus("Downloading...", false);
-  chrome.runtime.sendMessage({ type: "DOWNLOAD_SAVED" }).then(function (res) {
-    setStatus(res && res.status ? res.status : "Started", false);
+  setStatus("準備中...", false);
+
+  // 選択されたリストで一時的にstorageを更新（bg.jsがstorageを読むため）
+  chrome.storage.local.get(["last"]).then(function (data) {
+    var last = data.last || {};
+    last.urls = selectedUrls;
+    return chrome.storage.local.set({ last: last });
+  }).then(function () {
+    return chrome.runtime.sendMessage({ type: "DOWNLOAD_SAVED" });
+  }).then(function (res) {
+    setStatus(res && res.status ? res.status : "開始しました", false);
   }).catch(function (err) {
     console.error(err);
-    setStatus("Error: " + err.message, false);
+    setStatus("エラー: " + err.message, false);
     downloadBtn.disabled = false;
   });
 }

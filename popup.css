@@ -190,3 +190,25 @@ button {
 .container {
     animation: fadeIn 0.4s ease-out;
 }
+
+.preview-item .checkbox-container {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-item .checkbox-container input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.preview-item.unselected {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
