@@ -91,6 +91,32 @@ button {
     border-color: var(--accent-color);
 }
 
+#download.primary-active {
+    background: var(--accent-gradient);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+}
+
+#download.primary-active:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(56, 189, 248, 0.35);
+}
+
+.secondary {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    backdrop-filter: blur(8px);
+    box-shadow: none !important;
+}
+
+.secondary:hover {
+    background: rgba(51, 65, 85, 0.8) !important;
+    border-color: var(--accent-color) !important;
+    transform: translateY(-1px);
+}
+
 #download:disabled {
     opacity: 0.5;
     cursor: not-allowed;

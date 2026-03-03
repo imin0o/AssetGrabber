@@ -192,6 +192,8 @@ function scanPage() {
         }
         setStatus("<b>" + count + "</b> 件を検出しました (個別に選択可能)", true);
         downloadBtn.disabled = false;
+        downloadBtn.classList.add("primary-active");
+        scanBtn.classList.add("secondary");
       });
     }).catch(function (err) {
       console.error(err);
