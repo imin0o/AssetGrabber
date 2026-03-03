@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Asset Grabber (images/videos/gifs)",
+  "version": "0.2.0",
+  "action": { "default_popup": "popup.html" },
+  "permissions": ["activeTab", "scripting", "downloads", "storage"],
+  "host_permissions": ["<all_urls>"],
+	"icons": {
+    "16": "icon/icon16.png",
+    "48": "icon/icon48.png",
+    "128": "icon/icon128.png"
+  },
+  "background": { "service_worker": "bg.js" }
+}
