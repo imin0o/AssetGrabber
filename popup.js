@@ -117,11 +117,61 @@ function scanPage() {
         }
       }).then(function () {
         var assetRe = new RegExp('\\.(png|jpe?g|webp|gif|avif|bmp|svg|mp4|webm|mov|m4v|mkv)(\\?|#|$)', 'i');
-        var count = 0;
+        var previewList = document.getElementById("preview-list");
+        if (previewList) previewList.innerHTML = "";
+
+        // 重複排除ロジック (PNG > JPG > WEBP > AVIF)
+        var priorityMap = { ".png": 1, ".jpg": 2, ".jpeg": 2, ".webp": 3, ".avif": 4, ".gif": 5, ".svg": 6 };
+        var dedupMap = new Map();
+
         for (var k = 0; k < res.urls.length; k++) {
-          if (assetRe.test(res.urls[k])) count++;
+          var url = res.urls[k];
+          if (assetRe.test(url)) {
+            var path = url.split(/[?#]/)[0];
+            var lastPart = path.split("/").pop();
+            var dotIndex = lastPart.lastIndexOf(".");
+            var base = (dotIndex !== -1) ? lastPart.substring(0, dotIndex) : lastPart;
+            var ext = (dotIndex !== -1) ? lastPart.substring(dotIndex).toLowerCase() : "";
+            var priority = priorityMap[ext] || 99;
+
+            if (!dedupMap.has(base) || priority < dedupMap.get(base).priority) {
+              dedupMap.set(base, { url: url, priority: priority, ext: ext });
+            }
+          }
         }
-        setStatus("<b>" + count + "</b> items found", true);
+
+        var sortedItems = Array.from(dedupMap.values());
+        var count = 0;
+
+        for (var i = 0; i < sortedItems.length; i++) {
+          var itemData = sortedItems[i];
+          count++;
+          if (previewList && count <= 100) { // リスト表示数を100件に増加
+            var item = document.createElement("div");
+            item.className = "preview-item";
+
+            var isVideo = [".mp4", ".webm", ".mov", ".m4v", ".mkv"].indexOf(itemData.ext) !== -1;
+            var media;
+            if (isVideo) {
+              media = document.createElement("video");
+              media.muted = true;
+              media.src = itemData.url;
+            } else {
+              media = document.createElement("img");
+              media.src = itemData.url;
+            }
+            media.loading = "lazy";
+
+            var badge = document.createElement("span");
+            badge.className = "type-badge";
+            badge.textContent = itemData.ext.replace(".", "");
+
+            item.appendChild(media);
+            item.appendChild(badge);
+            previewList.appendChild(item);
+          }
+        }
+        setStatus("<b>" + count + "</b> 件を検出しました (重複除外済)", true);
         downloadBtn.disabled = false;
       });
     }).catch(function (err) {
